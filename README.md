@@ -19,7 +19,7 @@ To use the fork, follow the steps outlined below:
 1. Clone your forked repo.
 
 ```bash
-git clone https://github.com/<YOUR-USERNAME>/solana-nft-anchor
+https://github.com/tosky19941209/spl_token_mint_transfer.git
 ```
 
 2. Change directory into the root of your cloned repo and install missing node packages
