@@ -41,29 +41,18 @@ anchor build
 ```bash
 anchor keys list
 ```
-
-5. Update your [`Anchor.toml`](Anchor.toml) file, by using the address generated in the previous step. 
-
-```toml
-[programs.devnet]
-solana_nft_anchor = "<ADD YOUR ADDRESS HERE>"
+5. Sync the program Id
+```bash
+anchor keys sync
 ```
-
-6. Update your [`lib.rs`](programs/solana-nft-anchor/src//lib.rs) file by adding the the address generated in step 4 to the `declare_id!()` macro
-
-```rust
-    // snip
-use mpl_token_metadata::{
-    pda::{find_master_edition_account, find_metadata_account},
-    state::DataV2,
-};
-
-declare_id!("<UPDATE HERE>");
-#[program]
-pub mod solana_nft_anchor {
-    // snip
+6. Deploy and Test
+```bash
+anchor deploy
 ```
-
+```bash
+anchor test
+```
+   
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
