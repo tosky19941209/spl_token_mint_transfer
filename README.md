@@ -60,7 +60,6 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 ## Questions
 
 Did you encounter a challenge following the tutorial or running the fork? 
-Head over to our [learning support](https://discord.com/channels/1130457754826461216/1132978998155165806) channel on our [Discord](https://discord.gg/38KftAhW) or alternatively, raise a ticket. 
 
 We are always happy to lend a helping hand
 
