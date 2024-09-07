@@ -1,29 +1,10 @@
-use crate::token::{initialize_mint, mint_to};
+use crate::token::{initialize_mint, mint_to, transfer};
 use anchor_lang::prelude::*;
 
 use anchor_spl::associated_token::{self, AssociatedToken, Create};
-use anchor_spl::token::{self, InitializeMint, MintTo, Token, TokenAccount};
+use anchor_spl::token::{self, InitializeMint, Mint, MintTo, Token, TokenAccount, Transfer};
 
-declare_id!("DFPYLrAtLs3CB9zD3MUhKinUfnBXcFgSJHxkYcPtsAWm");
-
-#[derive(Accounts)]
-pub struct CreateToken<'info> {
-    #[account(mut)]
-    pub mint_token: Signer<'info>,
-    #[account(mut)]
-    pub signer: Signer<'info>,
-    ///CHECK:
-    #[account(mut)]
-    pub token_account: AccountInfo<'info>,
-    pub system_program: Program<'info, System>,
-    pub token_program: Program<'info, Token>,
-    pub associate_token_program: Program<'info, AssociatedToken>,
-    pub rent: Sysvar<'info, Rent>,
-}
-
-#[derive(Accounts)]
-pub struct Initialize {}
-
+declare_id!("DHRi9Vrw9JnML4MWHPykMn79xAt7JQDu9opeyC4EkNXA");
 
 #[program]
 pub mod token_mint {
@@ -83,5 +64,60 @@ pub mod token_mint {
         )?;
         Ok(())
     }
+
+    pub fn transer_token(ctx: Context<TransferToken>, amount: u64) -> Result<()> {
+        msg!(
+            "Started {:} tokens transfer from account {:} to {:}",
+            amount,
+            ctx.accounts.from_account.key(),
+            ctx.accounts.to_account.key()
+        );
+
+        transfer(
+            CpiContext::new(
+                ctx.accounts.token_program.to_account_info(),
+                Transfer {
+                    authority: ctx.accounts.signer.to_account_info(),
+                    from: ctx.accounts.from_account.to_account_info(),
+                    to: ctx.accounts.to_account.to_account_info(),
+                },
+            ),
+            amount,
+        )?;
+
+        Ok(())
+    }
 }
 
+#[derive(Accounts)]
+pub struct CreateToken<'info> {
+    #[account(mut)]
+    pub mint_token: Signer<'info>,
+    #[account(mut)]
+    pub signer: Signer<'info>,
+    ///CHECK:
+    #[account(mut)]
+    pub token_account: AccountInfo<'info>,
+    pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
+    pub associate_token_program: Program<'info, AssociatedToken>,
+    pub rent: Sysvar<'info, Rent>,
+}
+
+#[derive(Accounts)]
+pub struct Initialize {}
+
+#[derive(Accounts)]
+pub struct TransferToken<'info> {
+    #[account(mut)]
+    pub mint_token: Account<'info, Mint>,
+    #[account(mut)]
+    pub from_account: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub to_account: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub signer: Signer<'info>,
+    pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
+    pub associate_token_program: Program<'info, AssociatedToken>,
+}

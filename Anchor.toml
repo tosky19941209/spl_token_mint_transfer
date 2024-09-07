@@ -1,11 +1,11 @@
 [toolchain]
 
 [features]
-resolution = true
+seeds = false
 skip-lint = false
 
 [programs.localnet]
-token_mint = "DFPYLrAtLs3CB9zD3MUhKinUfnBXcFgSJHxkYcPtsAWm"
+token_mint = "DHRi9Vrw9JnML4MWHPykMn79xAt7JQDu9opeyC4EkNXA"
 
 [registry]
 url = "https://api.apr.dev"

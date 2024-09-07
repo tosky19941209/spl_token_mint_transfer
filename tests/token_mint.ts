@@ -45,4 +45,34 @@ describe("token_mint", () => {
       console.log(error)
     }
   })
+
+
+  it("Token transfer", async () => {
+
+    let receiver = anchor.web3.Keypair.generate()
+
+    const signature = await provider.connection.requestAirdrop(receiver.publicKey, anchor.web3.LAMPORTS_PER_SOL)
+    await provider.connection.confirmTransaction(signature)
+
+    let recieverTokenAccountKeypair = anchor.web3.Keypair.generate()
+    await createAccount(provider.connection, receiver, mintToken.publicKey, receiver.publicKey, recieverTokenAccountKeypair);
+
+    try {
+      const tx = await program.methods.transerToken(new anchor.BN(10 ** 9 * 90))
+        .accounts({
+          mintToken: mintToken.publicKey,
+          fromAccount: tokenAccount,
+          toAccount: recieverTokenAccountKeypair.publicKey,
+          associateTokenProgram
+        })
+        .signers([])
+        .rpc()
+
+      console.log("Your transaction signature", tx);
+    } catch (error) {
+      console.log(error)
+    }
+
+
+  })
 });
