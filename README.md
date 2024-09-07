@@ -1,4 +1,4 @@
-# Solana-NFT-Anchor
+# Solana-Spl-Token-mint, transfer, freeze
 
 Based on the [Mint Your First NFT](https://calyptus.co/lessons/mint-your-first-nft/) lesson, this project shows how to mint your first NFT on the Solana blockchain using [Anchor](https://www.anchor-lang.com/) and [Metaplex](https://www.anchor-lang.com/).
 
