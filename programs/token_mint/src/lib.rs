@@ -1,9 +1,11 @@
-use crate::token::{initialize_mint, mint_to, transfer};
+use crate::token::{burn, close_account, initialize_mint, mint_to, set_authority, transfer, freeze_account, thaw_account};
 use anchor_lang::prelude::*;
 
 use anchor_spl::associated_token::{self, AssociatedToken, Create};
-use anchor_spl::token::{self, InitializeMint, Mint, MintTo, Token, TokenAccount, Transfer};
-
+use anchor_spl::token::{
+    self, Burn, CloseAccount, InitializeMint, Mint, MintTo, SetAuthority, Token, TokenAccount,
+    Transfer, FreezeAccount, ThawAccount
+};
 declare_id!("DHRi9Vrw9JnML4MWHPykMn79xAt7JQDu9opeyC4EkNXA");
 
 #[program]
@@ -87,6 +89,73 @@ pub mod token_mint {
 
         Ok(())
     }
+
+    pub fn set_authority_token(ctx: Context<SetAuthorityToken>) -> Result<()> {
+        set_authority(
+            CpiContext::new(
+                ctx.accounts.token_account.to_account_info(),
+                SetAuthority {
+                    account_or_mint: ctx.accounts.mint_token.to_account_info(),
+                    current_authority: ctx.accounts.signer.to_account_info(),
+                },
+            ),
+            anchor_spl::token::spl_token::instruction::AuthorityType::AccountOwner,
+            Some(ctx.accounts.new_signer.key()),
+        )?;
+        Ok(())
+    }
+
+    pub fn burn_token(ctx: Context<BurnToken>, amount: u64) -> Result<()> {
+        burn(
+            CpiContext::new(
+                ctx.accounts.token_program.to_account_info(),
+                Burn {
+                    authority: ctx.accounts.signer.to_account_info(),
+                    from: ctx.accounts.token_account.to_account_info(),
+                    mint: ctx.accounts.mint_token.to_account_info(),
+                },
+            ),
+            amount,
+        )?;
+        Ok(())
+    }
+    pub fn close_token(ctx: Context<CloseToken>) -> Result<()> {
+        close_account(CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            CloseAccount {
+                account: ctx.accounts.token_account.to_account_info(),
+                destination: ctx.accounts.signer.to_account_info(),
+                authority: ctx.accounts.signer.to_account_info(),
+            },
+        ))?;
+
+        Ok(())
+    }
+
+    pub fn freeze_token(ctx: Context<FreezeToken>) -> Result<()> {
+        freeze_account(CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            FreezeAccount {
+                account: ctx.accounts.token_account.to_account_info(),
+                mint: ctx.accounts.mint_token.to_account_info(),
+                authority: ctx.accounts.signer.to_account_info(),
+            },
+        ))?;
+
+        Ok(())
+    }
+    pub fn un_freeze_token(ctx: Context<FreezeToken>) -> Result<()> {
+        thaw_account(CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            ThawAccount {
+                account: ctx.accounts.token_account.to_account_info(),
+                mint: ctx.accounts.mint_token.to_account_info(),
+                authority: ctx.accounts.signer.to_account_info(),
+            },
+        ))?;
+
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -121,3 +190,51 @@ pub struct TransferToken<'info> {
     pub token_program: Program<'info, Token>,
     pub associate_token_program: Program<'info, AssociatedToken>,
 }
+
+#[derive(Accounts)]
+pub struct SetAuthorityToken<'info> {
+    #[account(mut)]
+    pub mint_token: Account<'info, Mint>,
+    #[account(mut)]
+    pub signer: Signer<'info>,
+    #[account(mut)]
+    pub new_signer: Signer<'info>,
+    #[account(mut)]
+    pub token_account: Account<'info, TokenAccount>,
+    pub token_program: Program<'info, Token>,
+}
+
+#[derive(Accounts)]
+pub struct BurnToken<'info> {
+    #[account(mut)]
+    pub mint_token: Account<'info, Mint>,
+    #[account(mut)]
+    pub signer: Signer<'info>,
+    #[account(mut)]
+    pub token_account: Account<'info, TokenAccount>,
+    pub token_program: Program<'info, Token>,
+}
+#[derive(Accounts)]
+pub struct CloseToken<'info> {
+    #[account(mut)]
+    pub mint_token: Account<'info, Mint>,
+    #[account(mut)]
+    pub signer: Signer<'info>,
+    #[account(mut)]
+    pub token_account: Account<'info, TokenAccount>,
+    pub token_program: Program<'info, Token>,
+}
+
+#[derive(Accounts)]
+pub struct FreezeToken<'info> {
+    #[account(mut)]
+    pub mint_token: Account<'info, Mint>,
+    #[account(mut)]
+    pub signer: Signer<'info>,
+    #[account(mut)]
+    pub token_account: Account<'info, TokenAccount>,
+    pub token_program: Program<'info, Token>,
+}
+
+
+
