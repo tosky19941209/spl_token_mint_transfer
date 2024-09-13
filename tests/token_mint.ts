@@ -41,12 +41,11 @@ describe("token_mint", () => {
   it("Is initialized!", async () => {
     // Add your test here.
     const tx = await program.methods.initialize().rpc();
-    console.log("Your transaction signature", tx);
   });
 
   it("Token mint", async () => {
-    console.log(mintToken.publicKey.toBase58())
-    console.log(tokenAccount.toBase58())
+    // console.log(mintToken.publicKey.toBase58())
+    // console.log(tokenAccount.toBase58())
     try {
       const tx = await program.methods.createToken(9, new anchor.BN(10 ** 9 * 100))
         .accounts({
@@ -56,7 +55,6 @@ describe("token_mint", () => {
         })
         .signers([mintToken])
         .rpc();
-      console.log("Your transaction signature", tx);
     } catch (error) {
       console.log(error)
     }
@@ -83,8 +81,6 @@ describe("token_mint", () => {
         })
         .signers([])
         .rpc()
-
-      console.log("Your transaction signature", tx);
     } catch (error) {
       console.log(error)
     }
@@ -99,7 +95,6 @@ describe("token_mint", () => {
         })
         .signers([])
         .rpc();
-      console.log("Your transaction signature", tx);
     } catch (error) {
       console.log(error)
     }
@@ -113,7 +108,6 @@ describe("token_mint", () => {
       })
       .signers([])
       .rpc();
-    console.log("Your transaction signature", tx);
   });
 
   it("Freeze token and UnFreeze token!", async () => {
@@ -133,7 +127,6 @@ describe("token_mint", () => {
       })
       .signers([])
       .rpc();
-    console.log("Your Freezen transaction signature", tx);
 
     const tx2 = await program.methods.unFreezeToken()
       .accounts({
@@ -142,7 +135,6 @@ describe("token_mint", () => {
       })
       .signers([])
       .rpc();
-    console.log("Your UnFreeze transaction signature", tx2);
 
   });
 
