@@ -45,7 +45,12 @@ anchor keys list
 ```bash
 anchor keys sync
 ```
-6. Deploy and Test
+6. Extend the program size
+
+```bash
+solana program extend "Program ID" 20000
+```
+7. Deploy and Test
 ```bash
 anchor deploy
 ```
