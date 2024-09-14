@@ -2,8 +2,9 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program, Wallet } from "@coral-xyz/anchor";
 import { TokenMint } from "../target/types/token_mint";
 import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
-import { createAccount } from "@solana/spl-token";
+import { createAccount, getAccount } from "@solana/spl-token";
 import { token } from "@coral-xyz/anchor/dist/cjs/utils";
+import { expect } from "chai";
 
 describe("token_mint", () => {
   // Configure the client to use the local cluster.
@@ -15,28 +16,8 @@ describe("token_mint", () => {
 
   const mintToken = anchor.web3.Keypair.generate();
   const associateTokenProgram = new anchor.web3.PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
+  const TOKEN_PROGRAM_ID = new anchor.web3.PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
   const tokenAccount = anchor.utils.token.associatedAddress({ mint: mintToken.publicKey, owner: provider.publicKey });
-  const transaction = new anchor.web3.Transaction();
-
-  transaction.add(
-    anchor.web3.SystemProgram.createAccount({
-      fromPubkey: provider.publicKey,
-      newAccountPubkey: tokenAccount,
-      lamports: anchor.web3.LAMPORTS_PER_SOL,
-      space: 165,
-      programId: associateTokenProgram,
-    }),
-  );
-
-  // transaction.sign();
-
-  const ta = anchor.web3.PublicKey.findProgramAddressSync(
-    [provider.publicKey.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mintToken.publicKey.toBuffer()],
-    associateTokenProgram
-  )[0];
-
-  let tokenAccountKeyPair = anchor.web3.Keypair.generate()
-
 
   it("Is initialized!", async () => {
     // Add your test here.
@@ -46,65 +27,83 @@ describe("token_mint", () => {
   it("Token mint", async () => {
     // console.log(mintToken.publicKey.toBase58())
     // console.log(tokenAccount.toBase58())
-    try {
-      const tx = await program.methods.createToken(9, new anchor.BN(10 ** 9 * 100))
-        .accounts({
-          mintToken: mintToken.publicKey,
-          tokenAccount: tokenAccount,
-          associateTokenProgram,
-        })
-        .signers([mintToken])
-        .rpc();
-    } catch (error) {
-      console.log(error)
-    }
+
+    const tx = await program.methods.createToken(9, new anchor.BN(10 ** 9 * 100))
+      .accounts({
+        mintToken: mintToken.publicKey,
+        tokenAccount: tokenAccount,
+        associateTokenProgram,
+      })
+      .signers([mintToken])
+      .rpc();
+
   })
 
 
   it("Token transfer", async () => {
-
+    let totalSupply: number = 100
+    let transferAmount: number = 60
+    let decimal: number = 9
     let receiver = anchor.web3.Keypair.generate()
 
     const signature = await provider.connection.requestAirdrop(receiver.publicKey, anchor.web3.LAMPORTS_PER_SOL)
     await provider.connection.confirmTransaction(signature)
 
-    let recieverTokenAccountKeypair = anchor.web3.Keypair.generate()
-    await createAccount(provider.connection, receiver, mintToken.publicKey, receiver.publicKey, recieverTokenAccountKeypair);
+    let receiverTokenAccountKeypair = anchor.web3.Keypair.generate()
+    let receiverTokenAccount = await createAccount(provider.connection, receiver, mintToken.publicKey, receiver.publicKey, receiverTokenAccountKeypair);
 
-    try {
-      const tx = await program.methods.transerToken(new anchor.BN(10 ** 9 * 90))
-        .accounts({
-          mintToken: mintToken.publicKey,
-          fromAccount: tokenAccount,
-          toAccount: recieverTokenAccountKeypair.publicKey,
-          associateTokenProgram
-        })
-        .signers([])
-        .rpc()
-    } catch (error) {
-      console.log(error)
-    }
+    await expect((await provider
+      .connection
+      .getTokenAccountBalance(tokenAccount))
+      .value.amount)
+      .equal(String(totalSupply * 10 ** decimal))
+
+    await expect((await provider
+      .connection
+      .getTokenAccountBalance(receiverTokenAccount))
+      .value.amount)
+      .equal(String(0))
+
+    const tx = await program.methods.transerToken(new anchor.BN(10 ** decimal * transferAmount))
+      .accounts({
+        mintToken: mintToken.publicKey,
+        fromAccount: tokenAccount,
+        toAccount: receiverTokenAccountKeypair.publicKey,
+        associateTokenProgram
+      })
+      .signers([])
+      .rpc()
+
+    await expect((await provider
+      .connection
+      .getTokenAccountBalance(tokenAccount))
+      .value.amount)
+      .equal(String((totalSupply - transferAmount) * 10 ** decimal))
+
+    await expect((await provider
+      .connection
+      .getTokenAccountBalance(receiverTokenAccount))
+      .value.amount)
+      .equal(String(transferAmount * 10 ** decimal))
   })
 
   it("Burn token!", async () => {
-    try {
-      const tx = await program.methods.burnToken(new anchor.BN(10 ** 9 * 10))
-        .accounts({
-          mintToken: mintToken.publicKey,
-          tokenAccount,
-        })
-        .signers([])
-        .rpc();
-    } catch (error) {
-      console.log(error)
-    }
+    const tx = await program.methods.burnToken(new anchor.BN(10 ** 9 * 40))
+      .accounts({
+        mintToken: mintToken.publicKey,
+        tokenAccount,
+      })
+      .signers([])
+      .rpc();
   });
 
   it("Close token!", async () => {
     const tx = await program.methods.closeToken()
       .accounts({
         mintToken: mintToken.publicKey,
+        signer: provider.publicKey,
         tokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID
       })
       .signers([])
       .rpc();
@@ -141,6 +140,7 @@ describe("token_mint", () => {
   it("Set Authority token!", async () => {
 
     let new_signer = anchor.web3.Keypair.generate()
+
     try {
       const tx = await program.methods.setAuthorityToken(0)
         .accounts({
@@ -152,11 +152,8 @@ describe("token_mint", () => {
         .rpc();
       console.log("Your transaction signature", tx);
     } catch (e) {
-      console.log(e)
+      // console.log(e)
     }
   });
 
 });
-
-
-//git

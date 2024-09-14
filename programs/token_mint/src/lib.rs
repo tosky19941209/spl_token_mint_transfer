@@ -6,7 +6,7 @@ use anchor_spl::token::{
     self, Burn, CloseAccount, InitializeMint, Mint, MintTo, SetAuthority, Token, TokenAccount,
     Transfer, FreezeAccount, ThawAccount
 };
-declare_id!("BQjcQ3DQ9zDG3kSnR8dcdst2Te1953B86DQHP2GSKt75");
+declare_id!("AYmGbDg9pUHn2TQzqcCctuPgwMY7H7Upj5aUYvmwmbYU");
 
 #[program]
 pub mod token_mint {
@@ -25,7 +25,7 @@ pub mod token_mint {
                     to: ctx.accounts.mint_token.to_account_info(),
                 },
             ),
-            10_000_000,
+            1_000_000,
             82,
             ctx.accounts.token_program.key,
         )?;
